@@ -37,7 +37,6 @@ func (solver *CaptchaSolver) createRequest(
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(field, "=", result)
 
 		if fw, err = writer.CreateFormField(field); err != nil {
 			return nil, err
