@@ -1,7 +1,7 @@
 go-rucaptha
 -----------
 
-Go-rucaptha is the package to work with API rucapthca (https://rucaptcha.com)
+Go-rucaptha is the package to work with API rucaptcha (https://rucaptcha.com)
 
 
 Installation
@@ -27,7 +27,7 @@ Create new instance of rucaptcha solver:
 solver := rucaptcha.New("your api key")
 ```
 
-Ivoke `Solve` method for get answer:
+Call `Solve` method for get answer:
 
 ```
 answer, _ := solver.Solve("https://raw.githubusercontent.com/allush/go-rucaptha/master/test/captcha.jpg")
