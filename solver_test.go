@@ -5,8 +5,7 @@ import "testing"
 var solver *CaptchaSolver
 
 func TestNew(t *testing.T) {
-	// solver = New("rucaptcha api key")
-	solver = New("928c5c92741e747019c932be14da7762")
+	solver = New("rucaptcha api key")
 	if solver == nil {
 		t.Errorf("Could not create solver instance\n")
 	}
