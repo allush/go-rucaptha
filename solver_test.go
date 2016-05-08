@@ -1,4 +1,4 @@
-package rucapcha
+package rucaptcha
 
 import "testing"
 
