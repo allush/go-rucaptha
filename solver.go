@@ -155,7 +155,7 @@ func (solver *CaptchaSolver) waitForReady(captchaID string) (*string, error) {
 
 func (solver *CaptchaSolver) loadCaptchaImage() (*[]byte, error) {
 	isHTTP := regexp.
-		MustCompile(`http://`).
+		MustCompile(`(http://|https://)`).
 		MatchString(solver.ImagePath)
 
 	if !isHTTP {

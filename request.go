@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 )
 
 func (solver *CaptchaSolver) createRequest(
@@ -32,13 +33,16 @@ func (solver *CaptchaSolver) createRequest(
 	}
 
 	for field, value := range data {
-		result, ok := value.(string)
-		if !ok {
-			return nil, fmt.Errorf("option \"" + field + "\" should be string\n")
+		result, err := solver.parseValue(value)
+		if err != nil {
+			return nil, err
 		}
+		fmt.Println(field, "=", result)
+
 		if fw, err = writer.CreateFormField(field); err != nil {
 			return nil, err
 		}
+
 		if _, err = fw.Write([]byte(result)); err != nil {
 			return nil, err
 		}
@@ -53,6 +57,29 @@ func (solver *CaptchaSolver) createRequest(
 	request.Header.Set("Content-Type", writer.FormDataContentType())
 
 	return request, nil
+}
+
+func (solver *CaptchaSolver) parseValue(value interface{}) (string, error) {
+
+	resultString, okString := value.(string)
+	if okString {
+		return resultString, nil
+	}
+
+	resultInt, okInt := value.(int)
+	if okInt {
+		return strconv.Itoa(resultInt), nil
+	}
+	resultBool, okBool := value.(bool)
+	if okBool {
+		boolVal := 0
+		if resultBool == true {
+			boolVal = 1
+		}
+		return strconv.Itoa(boolVal), nil
+	}
+
+	return "", fmt.Errorf("option could not be converted to string\n")
 }
 
 func (solver *CaptchaSolver) sendRequest(file []byte) (io.ReadCloser, error) {
