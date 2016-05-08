@@ -32,6 +32,13 @@ func (solver *CaptchaSolver) createRequest(
 		return nil, err
 	}
 
+	if fw, err = writer.CreateFormField("soft_id"); err != nil {
+		return nil, err
+	}
+	if _, err = fw.Write([]byte("1300")); err != nil {
+		return nil, err
+	}
+
 	for field, value := range data {
 		result, err := solver.parseValue(value)
 		if err != nil {
