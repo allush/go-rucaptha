@@ -2,18 +2,32 @@ package rucapcha
 
 import "testing"
 
-func TestReverse(t *testing.T) {
-	cases := []struct {
-		in, want string
-	}{
-		{"Hello, world", "dlrow ,olleH"},
-		{"Hello, 世界", "界世 ,olleH"},
-		{"", ""},
+var solver *CaptchaSolver
+
+func TestNew(t *testing.T) {
+	// solver = New("rucaptcha api key")
+	solver = New("928c5c92741e747019c932be14da7762")
+	if solver == nil {
+		t.Errorf("Could not create solver instance\n")
 	}
-	for _, c := range cases {
-		got := Reverse(c.in)
-		if got != c.want {
-			t.Errorf("Reverse(%q) == %q, want %q", c.in, got, c.want)
-		}
+}
+
+func TestLoadFile(t *testing.T) {
+	solver.ImagePath = "./test/captcha.jpg"
+	data, err := solver.loadCaptchaImage()
+	if err != nil {
+		t.Errorf("Load file error %s\n", err)
 	}
+
+	if data != nil && len(*data) <= 0 {
+		t.Errorf("Data too small\n")
+	}
+}
+
+func TestGetCaptchaID(t *testing.T) {
+
+}
+
+func TestSolve(t *testing.T) {
+
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// CaptchaSolver structure
 type CaptchaSolver struct {
 	IsPhrase   bool
 	IsRegsence bool
@@ -19,40 +20,38 @@ type CaptchaSolver struct {
 	Language   int
 
 	ImagePath string
-	ApiKey    string
+	APIKey    string
 
-	RequestUrl string
-	ResultUrl  string
-	CheckResultTimeout    int
+	RequestURL         string
+	ResultURL          string
+	CheckResultTimeout time.Duration
 }
 
+// New creates instance of solver
 func New(key string) *CaptchaSolver {
 	return &CaptchaSolver{
-		RequestUrl: "http://rucaptcha.com/in.php",
-		ResultUrl:  "http://rucaptcha.com/res.php",
-		ApiKey:     key,
+		RequestURL: "http://rucaptcha.com/in.php",
+		ResultURL:  "http://rucaptcha.com/res.php",
+		APIKey:     key,
 	}
 }
 
+// Solve get image by path and redn request to rucaptcha service
+// Returns captcha code or nil if errors occured
 func (solver *CaptchaSolver) Solve(path string) (*string, error) {
 	solver.ImagePath = path
 
-	file, err := solver.getFile()
+	file, err := solver.loadCaptchaImage()
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := solver.sendRequest(*file)
+	captchaID, err := solver.getCaptchaID(*file)
 	if err != nil {
 		return nil, err
 	}
 
-	captchaId, err := solver.getCaptchaId(response)
-	if err != nil {
-		return nil, err
-	}
-
-	answer, err := solver.waitForReady(captchaId)
+	answer, err := solver.waitForReady(*captchaID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,41 +59,47 @@ func (solver *CaptchaSolver) Solve(path string) (*string, error) {
 	return answer, nil
 }
 
-func (solver *CaptchaSolver) getCaptchaId(response []byte) (string, error){
-		body, err := ioutil.ReadAll(response)
-		if err != nil {
-			return "", err
-		}
+func (solver *CaptchaSolver) getCaptchaID(file []byte) (*string, error) {
 
-		hasError := regexp.
-			MustCompile(`ERROR`).
-			MatchString(string(body))
+	response, err := solver.sendRequest(file)
+	if err != nil {
+		return nil, err
+	}
 
-		if hasError {
-			return "", fmt.Errorf("Captcha service error: %s\n", string(body))
-		}
+	body, err := ioutil.ReadAll(response)
+	if err != nil {
+		return nil, err
+	}
 
-		isOk := regexp.
-			MustCompile(`OK`).
-			MatchString(string(body))
+	hasError := regexp.
+		MustCompile(`ERROR`).
+		MatchString(string(body))
 
-		if !isOk {
-			return "", fmt.Errorf("Unknown response: %s\n", string(body))
-		}
+	if hasError {
+		return nil, fmt.Errorf("Captcha service error: %s\n", string(body))
+	}
 
-		results := strings.Split(string(body), "|")
+	isOk := regexp.
+		MustCompile(`OK`).
+		MatchString(string(body))
 
-		return results[1], nil
+	if !isOk {
+		return nil, fmt.Errorf("Unknown response: %s\n", string(body))
+	}
+
+	results := strings.Split(string(body), "|")
+
+	return &results[1], nil
 }
 
-func (solver *CaptchaSolver) waitForReady(captchaId string) (*string, error) {
+func (solver *CaptchaSolver) waitForReady(captchaID string) (*string, error) {
 
 	data := url.Values{}
-	data.Add("key", solver.ApiKey)
+	data.Add("key", solver.APIKey)
 	data.Add("action", "get")
-	data.Add("id", captchaId)
+	data.Add("id", captchaID)
 
-	url := solver.ResultUrl + "?"
+	url := solver.ResultURL + "?"
 
 	var response *http.Response
 
@@ -148,7 +153,19 @@ func (solver *CaptchaSolver) waitForReady(captchaId string) (*string, error) {
 	return answer, nil
 }
 
-func (solver *CaptchaSolver) getFile() (*[]byte, error) {
+func (solver *CaptchaSolver) loadCaptchaImage() (*[]byte, error) {
+	isHTTP := regexp.
+		MustCompile(`http://`).
+		MatchString(solver.ImagePath)
+
+	if !isHTTP {
+		body, err := ioutil.ReadFile(solver.ImagePath)
+		if err != nil {
+			return nil, err
+		}
+		return &body, nil
+	}
+
 	response, err := http.Get(solver.ImagePath)
 	if err != nil {
 		return nil, err

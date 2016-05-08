@@ -1,11 +1,11 @@
 package rucapcha
 
 import (
-	"net/http"
 	"bytes"
-	"mime/multipart"
 	"fmt"
 	"io"
+	"mime/multipart"
+	"net/http"
 )
 
 func (solver *CaptchaSolver) createRequest(
@@ -27,7 +27,7 @@ func (solver *CaptchaSolver) createRequest(
 	if fw, err = writer.CreateFormField("key"); err != nil {
 		return nil, err
 	}
-	if _, err = fw.Write([]byte(solver.ApiKey)); err != nil {
+	if _, err = fw.Write([]byte(solver.APIKey)); err != nil {
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func (solver *CaptchaSolver) createRequest(
 
 	writer.Close()
 
-	request, err := http.NewRequest("POST", solver.RequestUrl, &buffer)
+	request, err := http.NewRequest("POST", solver.RequestURL, &buffer)
 	if err != nil {
 		return nil, err
 	}
@@ -57,11 +57,11 @@ func (solver *CaptchaSolver) createRequest(
 
 func (solver *CaptchaSolver) sendRequest(file []byte) (io.ReadCloser, error) {
 	data := map[string]interface{}{
-		"phrase": solver.IsPhrase,
+		"phrase":   solver.IsPhrase,
 		"regsense": solver.IsRegsence,
-		"numeric": solver.IsNumeric,
-		"min_len": solver.MinLength,
-		"max_len": solver.MaxLength,
+		"numeric":  solver.IsNumeric,
+		"min_len":  solver.MinLength,
+		"max_len":  solver.MaxLength,
 		"language": solver.Language,
 	}
 
