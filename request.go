@@ -1,4 +1,4 @@
-package rucapcha
+package rucaptcha
 
 import (
 	"bytes"
@@ -32,6 +32,13 @@ func (solver *CaptchaSolver) createRequest(
 		return nil, err
 	}
 	if _, err = fw.Write([]byte(solver.APIKey)); err != nil {
+		return nil, err
+	}
+
+	if fw, err = writer.CreateFormField("soft_id"); err != nil {
+		return nil, err
+	}
+	if _, err = fw.Write([]byte("1300")); err != nil {
 		return nil, err
 	}
 
