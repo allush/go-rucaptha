@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strconv"
 )
 
@@ -37,7 +40,6 @@ func (solver *CaptchaSolver) createRequest(
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(field, "=", result)
 
 		if fw, err = writer.CreateFormField(field); err != nil {
 			return nil, err
@@ -108,4 +110,34 @@ func (solver *CaptchaSolver) sendRequest(file []byte) (io.ReadCloser, error) {
 	}
 
 	return res.Body, nil
+}
+
+func (solver *CaptchaSolver) complainRequest(captchaID string) error {
+
+	data := url.Values{}
+	data.Add("key", solver.APIKey)
+	data.Add("action", "reportbad")
+	data.Add("id", captchaID)
+
+	url := solver.ResultURL + "?" + data.Encode()
+
+	response, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	isOk := regexp.
+		MustCompile(`OK_REPORT_RECORDED`).
+		MatchString(string(body))
+
+	if !isOk {
+		return fmt.Errorf("Captcha complain error: %s\n", string(body))
+	}
+
+	return nil
 }

@@ -37,26 +37,31 @@ func New(key string) *CaptchaSolver {
 }
 
 // Solve get image by path and redn request to rucaptcha service
-// Returns captcha code or nil if errors occured
-func (solver *CaptchaSolver) Solve(path string) (*string, error) {
+// Returns captcha code, captchaID and error if errors occured
+func (solver *CaptchaSolver) Solve(path string) (*string, *string, error) {
 	solver.ImagePath = path
 
 	file, err := solver.loadCaptchaImage()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	captchaID, err := solver.getCaptchaID(*file)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	answer, err := solver.waitForReady(*captchaID)
 	if err != nil {
-		return nil, err
+		return nil, captchaID, err
 	}
 
-	return answer, nil
+	return answer, captchaID, nil
+}
+
+// Complain send complain request to service
+func (solver *CaptchaSolver) Complain(captchaID string) error {
+	return solver.complainRequest(captchaID)
 }
 
 func (solver *CaptchaSolver) getCaptchaID(file []byte) (*string, error) {

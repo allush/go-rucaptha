@@ -3,6 +3,7 @@ package rucapcha
 import "testing"
 
 var solver *CaptchaSolver
+var lastCaptchaID *string
 
 func TestNew(t *testing.T) {
 	// solver = New("rucaptcha api key")
@@ -37,7 +38,7 @@ func TestLoadFile(t *testing.T) {
 
 func TestSolve(t *testing.T) {
 	solver.IsRegsence = true
-	answer, err := solver.Solve(solver.ImagePath)
+	answer, _, err := solver.Solve(solver.ImagePath)
 	if err != nil {
 		t.Errorf("Solve error: %s\n", err)
 	}
@@ -45,5 +46,17 @@ func TestSolve(t *testing.T) {
 	want := "8AnF"
 	if *answer != want {
 		t.Errorf("Answer(%s) not equal want(%s)\n", *answer, want)
+	}
+}
+
+func TestComlpain(t *testing.T) {
+	_, lastCaptchaID, err := solver.Solve(solver.ImagePath)
+	if err != nil {
+		t.Errorf("Solve error: %s\n", err)
+	}
+
+	err = solver.Complain(*lastCaptchaID)
+	if err != nil {
+		t.Errorf("Complain error: %s\n", err)
 	}
 }
